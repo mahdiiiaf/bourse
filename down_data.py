@@ -98,3 +98,4 @@ def down_data(comp="نوری",num=1):
 
 			hist[comp].append(page_number)
 					
+pickle.dump(hist,open(rf"{data_directory}\hist.pkl","wb"))
