@@ -62,10 +62,6 @@ def down_data(comp="نوری",num=1):
 			parse=BeautifulSoup(driver.page_source,features="xml")
 			excel_url=parse.find_all("ExcelUrl")
 			title_name=parse.find_all("Title")
-			for k,l in zip(excel_url,title_name): 
-				if k.text!="" and ( "صورت‌های" in l.text ):	
-					print(l.text,"\n",k.text,"\n---------------------------------------------------")
-					####### I should check some cases
 			for k,l in zip(excel_url,title_name):	
 				if k.text!="" and ( "صورت‌های" in l.text ):
 					sal=""
