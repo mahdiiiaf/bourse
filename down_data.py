@@ -49,53 +49,72 @@ def down_data(comp="نوری",num=1):
 	company_name=quote(comp)
 
 	if comp not in hist :
-		hist[comp]=[]
+		hist[comp]={}
+		hist[comp]["down"]=[]
+		hist[comp]["total_page"]=1000
+	if len(hist[comp]["down"])==hist[comp]["total_page"]:
+		print(comp,"is downloaded")
+	else:
+		for i in range(num):
 
-	for i in range(num):
+			page_number=i+1
+			if page_number not in hist[comp]:
+				
 
-		page_number=i+1
-		if page_number not in hist[comp]:
-			link=f"https://search.codal.ir/api/search/v2/q?&Audited=true&AuditorRef=-1&Category=-1&Childs=true&CompanyState=0&CompanyType=1&Consolidatable=true&IsNotAudited=false&Isic=341010&Length=-1&LetterType=-1&Mains=true&NotAudited=true&NotConsolidatable=true&PageNumber={page_number}&Publisher=false&Symbol={company_name}&TracingNo=-1&search=true"
+				link=f"https://search.codal.ir/api/search/v2/q?&Audited=true&AuditorRef=-1&Category=-1&Childs=true&CompanyState=0&CompanyType=1&Consolidatable=true&IsNotAudited=false&Isic=341010&Length=-1&LetterType=-1&Mains=true&NotAudited=true&NotConsolidatable=true&PageNumber={page_number}&Publisher=false&Symbol={company_name}&TracingNo=-1&search=true"
 
-			driver.get(link)
+				driver.get(link)
 
-			parse=BeautifulSoup(driver.page_source,features="xml")
-			excel_url=parse.find_all("ExcelUrl")
-			title_name=parse.find_all("Title")
-			for k,l in zip(excel_url,title_name):	
-				if k.text!="" and ( "صورت‌های" in l.text ):
-					sal=""
-					mah=""
-					for (c,p) in enumerate(l.text):
-						if p.isdigit():
-							if l.text[c+2]!="م":
-								sal+=p
-							else :
-								mah+=p
+				parse=BeautifulSoup(driver.page_source,features="xml")
+				excel_url=parse.find_all("ExcelUrl")
+				title_name=parse.find_all("Title")
+				for k,l in zip(excel_url,title_name):	
+					if k.text!="" and ( ( "صورت‌های" in l.text ) or "صورتهای مالی" in l.text ):
+						sal=""
+						mah=""
+						for (c,p) in enumerate(l.text):
+							if p.isdigit():
+								if len(l.text)>c+2:
+									if l.text[c+2]!="م":
+										sal+=p
+									else :
+										mah+=p
+								else :
+									sal+=p		
 
-					sub=""
-					if "سال مالی" in  l.text:
-						if "حسابرسی شده" in l.text:
-							if "اصلاحیه" in l.text:
-								sub="sal-hesab-eslah"
-							else :
-								sub="sal-hesab"
-						elif "حسابرسی نشده" in l.text:	
-							sub="sal-bihesab"
+						sub=""
+						if "سال مالی" in  l.text:
+							if "حسابرسی شده" in l.text:
+								if "اصلاحیه" in l.text:
+									sub="sal-hesab-eslah"
+								else :
+									sub="sal-hesab"
+							elif "حسابرسی نشده" in l.text:	
+								sub="sal-bihesab"
 
-					elif "میاندوره‌ای" in  l.text:
-						if "حسابرسی شده" in l.text:
+						elif "میاندوره‌ای" in  l.text:
+							if "حسابرسی شده" in l.text:
 
-							sub="mian-hesab"
-						elif "حسابرسی نشده" in  l.text:
-							sub="mian-bihesab" 
+								sub="mian-hesab"
+							elif "حسابرسی نشده" in  l.text:
+								sub="mian-bihesab" 
 
-					direct=f"{comp}_{sub}_{sal}.xls" if mah=="" else f"{comp}_{sub}_{sal}_{mah}.xls"
-					
+						direct=f"{comp}_{sub}_{sal}.xls" if mah=="" else f"{comp}_{sub}_{sal}_{mah}.xls"
+						
 
-					if direct not in data_list:
-						urllib.request.urlretrieve(k.text,rf"{data_directory}\{direct}")
+						if direct not in data_list:
+							urllib.request.urlretrieve(k.text,rf"{data_directory}\{direct}")
+				if page_number==1:
+					hist[comp]["total_page"]=int(parse.find_all("Page")[0].text)
+				hist[comp]["down"].append(page_number)
+				if page_number>= hist[comp]["total_page"]:
+					break
+		pickle.dump(hist,open(rf"{data_directory}\hist.pkl","wb"))
 
-			hist[comp].append(page_number)
 					
 pickle.dump(hist,open(rf"{data_directory}\hist.pkl","wb"))
+
+
+def closi():
+	return driver.close()
+
