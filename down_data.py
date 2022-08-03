@@ -29,7 +29,7 @@ else :
 
 if True:
 	options = webdriver.ChromeOptions()
-	options.add_argument('headless')
+	#options.add_argument('headless')
 	options.add_experimental_option('excludeSwitches', ['enable-logging'])
 	options.add_argument('--ignore-ssl-errors=yes')
 	options.add_argument('--ignore-certificate-errors')
